@@ -2,6 +2,7 @@
 
 import synth
 
+import django.core.urlresolvers
 from django.conf import settings
 from django.template.loaders import app_directories, filesystem
 from django.template.base import get_library
@@ -27,7 +28,7 @@ class SynthTemplate(object):
     def __init__(self, source, engine_name=default_engine, directories=None):
         self.template = synth.StringTemplate(source.encode('utf-8'),
             engine_name, auto_escape, default_value, formats, debug,
-            directories, {}, [get_library])
+            directories, {}, [get_library], [urlresolvers])
 
     def render(self, context):
         # Flatten the django context into a single dictionary.
