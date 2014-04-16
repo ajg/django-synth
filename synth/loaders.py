@@ -26,9 +26,18 @@ print('Loaded synth; version: %s; default engine: %s.' % (synth.version(), defau
 class SynthTemplate(object):
     def __init__(self, source, engine_name=default_engine, directories=None):
         try:
-            self.template = synth.StringTemplate(source.encode('utf-8'),
-                engine_name, auto_escape, default_value, formats, debug,
-                directories, {}, [get_library], [urlresolvers])
+            self.template = synth.StringTemplate(
+                source,
+                engine_name,
+                auto_escape,
+                default_value,
+                formats,
+                debug,
+                directories,
+                {},
+                [get_library],
+                [urlresolvers],
+            )
         except RuntimeError as e:
             message = str(e)
             if 'parsing error' in message:
