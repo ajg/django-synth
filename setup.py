@@ -33,7 +33,7 @@ requirements = [
 
 setup(
     name = 'django-synth',
-    version = '0.2.0',
+    version = '0.3.0',
     description = 'A Simple Integration Between Django and Synth',
     long_description = long_description,
     keywords = 'django, tmpl, ssi, template, framework',
