@@ -8,7 +8,8 @@ from django.core import urlresolvers
 from django.template import TemplateSyntaxError
 from django.template.base import get_library
 
-settings.configure() # TODO: if not settings.configured
+if not settings.configured:
+    settings.configure()
 
 # TODO: Make private.
 default_engine = getattr(settings, 'SYNTH_DEFAULT_ENGINE', 'django')
