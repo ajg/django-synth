@@ -99,7 +99,6 @@ class SynthContext(dict):
 
 '''
 
-
 class SynthTag(object):
     def __init__(self, name, tag):
         self.name = name
@@ -117,55 +116,14 @@ class SynthTag(object):
         parser = SynthParser(tokens, nodelists)
         return SynthNode(self.tag(parser, parser.next_token()), nodelists)
 
-        '''
-        node   = self.tag(parser, parser.next_token())
-
-        def renderer(match, *args, **kwargs):
-            print 'renderer', match, args, kwargs
-
-            for nodelist in nodelists:
-                nodelist.match = match
-                print 'sss', repr(nodelist.render(xxx_original_context))
-            return node.render(xxx_original_context)
-
-        return renderer
-        '''
-
-
-'''
-class SynthNode(object): # TODO: (base.Node)
-    def __init__(self, nodelist):
-        super(SynthNode, self).__init__()
-        self.nodelist = nodelist
-
-    def __repr__(self):
-        return '<SynthNode>'
-
-    def __iter__(self):
-        yield self
-
-    def render(self, context):
-        return self.nodelist.render(context)
-
-    """
-    def get_nodes_by_type(self, nodetype):
-        nodes = []
-        if isinstance(self, nodetype):
-            nodes.append(self)
-        for attr in self.child_nodelists:
-            nodelist = getattr(self, attr, None)
-            if nodelist:
-                nodes.extend(nodelist.get_nodes_by_type(nodetype))
-        return nodes
-    """
-'''
-
-
 class SynthNode(base.Node):
     def __init__(self, node, nodelists):
         super(SynthNode, self).__init__()
         self.node = node
         self.nodelists = nodelists
+
+    def __repr__(self):
+        return '<SynthNode>'
 
     def __call__(self, match, *args, **kwargs):
         print 'SynthNode.__call__', match, args, kwargs
@@ -176,7 +134,7 @@ class SynthNode(base.Node):
 
         return self.node.render(xxx_original_context)
 
-def wrap_tag(name, t):
+def make_tag(name, t):
     arg_names = get_arg_names(name, t)
     if arg_names[:2] != CUSTOM_ARGUMENT_NAMES:
         raise Exception('Invalid argument names: ' + str(arg_names))
@@ -185,14 +143,12 @@ def wrap_tag(name, t):
 
     until = ('end' + name,) # TODO
     # source = getsource(t)
-
-
     return (SynthTag(name, t), until)
 
 
 class SynthLibrary(object):
     def __init__(self, library):
-        self.tags = {name: wrap_tag(name, t) for name, t in getattr(library, 'tags', {}).items()}
+        self.tags = {name: make_tag(name, t) for name, t in getattr(library, 'tags', {}).items()}
         self.filters = getattr(library, 'filters', {})
 
 
@@ -259,16 +215,6 @@ class SynthNodeList(base.NodeList):
             bits.append(force_text(bit))
         return mark_safe(''.join(bits))
         """
-
-    """
-    def get_nodes_by_type(self, nodetype):
-        nodes = []
-        for node in self:
-            nodes.extend(node.get_nodes_by_type(nodetype))
-        return nodes
-    """
-
-
 
 class SynthToken(base.Token):
     def __init__(self, tag_name, contents, arguments):
