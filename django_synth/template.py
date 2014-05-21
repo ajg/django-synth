@@ -206,9 +206,7 @@ class SynthNodeList(base.NodeList):
 
     def render(self, context):
         print 'SynthNodeList.render', self.match
-        s = self.renderer(self.match) # TODO: Pass the context
-        print '    s:', repr(s)
-        return s
+        return self.renderer(self.match) # TODO: Pass the context
 
         """
         bits = []
