@@ -1,5 +1,6 @@
 ##  (C) Copyright 2014 Alvaro J. Genial (http://alva.ro)
 
+import re
 import synth
 import django.template.base as base
 
@@ -134,16 +135,20 @@ class SynthNode(base.Node):
 
         return self.node.render(xxx_original_context)
 
+string_literal = r"""\s*(?:'(\w+)'|"(\w+)")\s*"""
+string_literals = string_literal + r'(?:,' + string_literal + r')*,?'
+tag_name_pattern = re.compile(r'parser\.parse\(\(' + string_literals + r'\)\)')
+
+
 def make_tag(name, t):
     arg_names = get_arg_names(name, t)
     if arg_names[:2] != CUSTOM_ARGUMENT_NAMES:
         raise Exception('Invalid argument names: ' + str(arg_names))
 
-    print name, arg_names, t
-
-    until = ('end' + name,) # TODO
-    # source = getsource(t)
-    return (SynthTag(name, t), until)
+    source = getsource(t)
+    until = [item for sublist in tag_name_pattern.findall(source) for item in sublist if item]
+    print name, arg_names, until, t
+    return (SynthTag(name, t), frozenset(until))
 
 
 class SynthLibrary(object):
