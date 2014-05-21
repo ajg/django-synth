@@ -1,14 +1,14 @@
 ##  (C) Copyright 2014 Alvaro J. Genial (http://alva.ro)
 
 from django.template.loaders import app_directories, filesystem
-from django_synth.template import BasicTemplate
+from django_synth.template import TemplateWrapper
 
 class AppDirectoriesLoader(app_directories.Loader):
     is_usable = True
 
     def load_template(self, template_name, template_dirs=None):
         source, origin = self.load_template_source(template_name, template_dirs)
-        template = BasicTemplate(source, default_engine, template_dirs)
+        template = TemplateWrapper(source, default_engine, template_dirs)
         return template, origin
 
 class FilesystemLoader(filesystem.Loader):
@@ -16,5 +16,5 @@ class FilesystemLoader(filesystem.Loader):
 
     def load_template(self, template_name, template_dirs=None):
         source, origin = self.load_template_source(template_name, template_dirs)
-        template = BasicTemplate(source, default_engine, template_dirs)
+        template = TemplateWrapper(source, default_engine, template_dirs)
         return template, origin
