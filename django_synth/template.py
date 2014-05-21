@@ -31,7 +31,7 @@ print('Loaded synth; version: %s; default engine: %s.' % (synth.version(), defau
 
 xxx_original_context = None
 
-class TemplateWrapper(object):
+class SynthTemplate(object):
     def __init__(self, source, engine_name=default_engine, directories=[]):
         try:
             self.template = synth.Template(
@@ -83,35 +83,15 @@ def get_arg_names(name, tag):
 
 def load_library(name):
     print 'load_library', name
-    return LibraryWrapper(base.get_library(name))
+    return SynthLibrary(base.get_library(name))
 
-
-
-'''
-def load_tag(name, tag):
-    arg_names = get_arg_names(name, tag)
-    if arg_names != CUSTOM_ARGUMENT_NAMES:
-        raise Exception('Invalid argument names: ' + str(arg_names))
-
-    print name, arg_names, tag
-
-
-
-
-    return TagWrapper(tag)
-
-    # tag_stack = []
-    # return lambda *args, **kwargs: (tag(*args, **kwargs), tag_stack)[1]
-
-    # wrap_tag(name, (lambda *pieces: tag(ParserWrapper(tag_stack), TokenWrapper(name, pieces))), tag_stack)
-'''
 
 CUSTOM_ARGUMENT_NAMES=('parser', 'token')
 
-'''
-class ContextWrapper(dict):
+''' TODO:
+class SynthContext(dict):
     def __init__(self, dict):
-        super(ContextWrapper, self).__init__(dict)
+        super(SynthContext, self).__init__(dict)
         self.autoescape  = None
         self.current_app = None
         self.use_l10n    = None
@@ -120,24 +100,22 @@ class ContextWrapper(dict):
 '''
 
 
-class TagWrapper(object):
+class SynthTag(object):
     def __init__(self, name, tag):
         self.name = name
         self.tag  = tag
 
     def __call__(self, segments):
-        print 'segments', len(segments), segments
-
         tokens = []
         nodelists = []
 
         for pieces, renderer in segments:
             contents, tag_name, arguments = pieces[0], pieces[1], pieces[2:]
-            tokens.append(TokenWrapper(tag_name, contents, arguments))
-            nodelists.append(NodeListWrapper(tag_name, renderer))
+            tokens.append(SynthToken(tag_name, contents, arguments))
+            nodelists.append(SynthNodeList(tag_name, renderer))
 
-        parser = ParserWrapper(tokens, nodelists)
-        return NodeWrapper(self.tag(parser, parser.next_token()), nodelists)
+        parser = SynthParser(tokens, nodelists)
+        return SynthNode(self.tag(parser, parser.next_token()), nodelists)
 
         '''
         node   = self.tag(parser, parser.next_token())
@@ -155,13 +133,13 @@ class TagWrapper(object):
 
 
 '''
-class NodeWrapper(object): # TODO: (base.Node)
+class SynthNode(object): # TODO: (base.Node)
     def __init__(self, nodelist):
-        super(NodeWrapper, self).__init__()
+        super(SynthNode, self).__init__()
         self.nodelist = nodelist
 
     def __repr__(self):
-        return '<NodeWrapper>'
+        return '<SynthNode>'
 
     def __iter__(self):
         yield self
@@ -183,14 +161,14 @@ class NodeWrapper(object): # TODO: (base.Node)
 '''
 
 
-class NodeWrapper(base.Node):
+class SynthNode(base.Node):
     def __init__(self, node, nodelists):
-        super(NodeWrapper, self).__init__()
+        super(SynthNode, self).__init__()
         self.node = node
         self.nodelists = nodelists
 
     def __call__(self, match, *args, **kwargs):
-        print 'NodeWrapper.__call__', match, args, kwargs
+        print 'SynthNode.__call__', match, args, kwargs
 
         for nodelist in self.nodelists:
             nodelist.match = match
@@ -209,25 +187,25 @@ def wrap_tag(name, t):
     # source = getsource(t)
 
 
-    return (TagWrapper(name, t), until)
+    return (SynthTag(name, t), until)
 
 
-class LibraryWrapper(object):
+class SynthLibrary(object):
     def __init__(self, library):
         self.tags = {name: wrap_tag(name, t) for name, t in getattr(library, 'tags', {}).items()}
         self.filters = getattr(library, 'filters', {})
 
 
-class ParserWrapper(base.Parser):
+class SynthParser(base.Parser):
     def __init__(self, tokens, nodelists):
-        super(ParserWrapper, self).__init__(tokens)
+        super(SynthParser, self).__init__(tokens)
         # self.tokens    = tokens
         self.nodelists = nodelists
         self.t         = 0
         self.n         = 0
 
     def parse(self, until=None):
-        print 'ParserWrapper.parse', until
+        print 'SynthParser.parse', until
 
         if until:
             while self.n + 1 < len(self.nodelists) and self.nodelists[self.n + 1].tag_name not in until:
@@ -237,36 +215,36 @@ class ParserWrapper(base.Parser):
         return self.nodelists[self.n]
 
     def skip_past(self, endtag):
-        print 'ParserWrapper.skip_past', endtag
+        print 'SynthParser.skip_past', endtag
 
         while self.n + 1 < len(self.nodelists) and self.nodelists[self.n + 1].tag_name != endtag:
             self.n += 1
             self.t += 1
 
     def next_token(self):
-        print 'ParserWrapper.next_token'
+        print 'SynthParser.next_token'
         self.t += 1
         return self.tokens[self.t - 1]
 
     def delete_first_token(self):
-        print 'ParserWrapper.delete_first_token'
+        print 'SynthParser.delete_first_token'
         self.t += 1
 
 
 
-class NodeListWrapper(base.NodeList):
+class SynthNodeList(base.NodeList):
     def __init__(self, tag_name, renderer):
-        super(NodeListWrapper, self).__init__()
+        super(SynthNodeList, self).__init__()
         self.tag_name = tag_name
         self.renderer = renderer
         self.match    = None
 
     def render_node(self, node, context):
-        print 'NodeListWrapper.render_node', node
+        print 'SynthNodeList.render_node', node
         return node.render(context)
 
     def render(self, context):
-        print 'NodeListWrapper.render', self.match
+        print 'SynthNodeList.render', self.match
         s = self.renderer(self.match) # TODO: Pass the context
         print '    s:', repr(s)
         return s
@@ -292,9 +270,9 @@ class NodeListWrapper(base.NodeList):
 
 
 
-class TokenWrapper(base.Token):
+class SynthToken(base.Token):
     def __init__(self, tag_name, contents, arguments):
-        super(TokenWrapper, self).__init__(base.TOKEN_BLOCK, contents)
+        super(SynthToken, self).__init__(base.TOKEN_BLOCK, contents)
         # self.tag_name = tag_name
         # self.token_type = None     # TODO
         # self.token_name = tag_name # TODO: TOKEN_MAPPING[token_type]

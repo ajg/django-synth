@@ -19,7 +19,7 @@ class UTC(tzinfo):
 
 
 from django.template import Context
-from django_synth.template import TemplateWrapper
+from django_synth.template import SynthTemplate
 
 context = Context({
   'motto': 'May the Force be with you.',
@@ -54,4 +54,4 @@ source = """
 {% endcomment %}
 '''
 
-print TemplateWrapper(source).render(context)
+print SynthTemplate(source).render(context)
