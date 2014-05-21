@@ -19,7 +19,7 @@ class UTC(tzinfo):
 
 
 from django.template import Context
-from django_synth.template import BasicTemplate
+from django_synth.template import TemplateWrapper
 
 context = Context({
   'motto': 'May the Force be with you.',
@@ -27,12 +27,31 @@ context = Context({
 })
 source = """
 
+{% load l10n %}
 {% load tz %}
+
+{{ motto|localize }}
+{{ motto|unlocalize }}
 
 {{ dt }}
 {{ dt|utc }}
 {{ dt|localtime }}
 
+{% localize on %}
+(value: {{ value }})
+{% endlocalize %}
+
+{% localize off %}
+(value: {{ value }})
+{% endlocalize %}
 """
 
-print BasicTemplate(source).render(context)
+'''
+{% comment %}
+{% localize on %}
+(value: {{ value }})
+{% endlocalize %}
+{% endcomment %}
+'''
+
+print TemplateWrapper(source).render(context)
