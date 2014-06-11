@@ -117,7 +117,7 @@ class SynthNode(base.Node):
         return '<SynthNode>'
 
     def __call__(self, context, match, *args, **kwargs):
-        print 'SynthNode.__call__', match, args, kwargs
+        # print 'SynthNode.__call__', match, args, kwargs
 
         for nodelist in self.nodelists:
             nodelist.match = match
@@ -135,10 +135,16 @@ def make_tag(name, t):
     if arg_names[:2] != CUSTOM_ARGUMENT_NAMES:
         raise Exception('Invalid argument names: ' + str(arg_names))
 
+    middle_names, last_names = None, None
     source = getsource(t)
-    until = [item for sublist in tag_name_pattern.findall(source) for item in sublist if item]
-    print name, arg_names, until, t
-    return (SynthTag(name, t), frozenset(until))
+    names = [item for sublist in tag_name_pattern.findall(source) for item in sublist if item]
+    # print name, arg_names, names, t
+
+    if names:
+        middle_names = frozenset([name for name in names if not name.startswith('end')])
+        last_names = frozenset([name for name in names if name.startswith('end')] or ['end' + name])
+
+    return (SynthTag(name, t), middle_names, last_names)
 
 
 class SynthLibrary(object):
