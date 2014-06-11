@@ -15,7 +15,6 @@ if not settings.configured:
 # TODO: Make private.
 default_engine = getattr(settings, 'SYNTH_DEFAULT_ENGINE', 'django')
 default_value  = getattr(settings, 'SYNTH_DEFAULT_VALUE',  settings.TEMPLATE_STRING_IF_INVALID)
-autoescape     = getattr(settings, 'SYNTH_AUTOESCAPE',     True)
 debug          = getattr(settings, 'SYNTH_DEBUG',          settings.TEMPLATE_DEBUG)
 formats        = getattr(settings, 'SYNTH_FORMATS', {
     'DATE_FORMAT':           settings.DATE_FORMAT,
@@ -38,10 +37,9 @@ class SynthTemplate(object):
             self.template = synth.Template(
                 source,
                 engine_name,
-                autoescape,
                 default_value,
                 formats,
-                debug or True, # FIXME: Temporary hack for django-synth.
+                debug,
                 directories,
                 {},
                 [load_library],
