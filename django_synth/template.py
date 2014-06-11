@@ -28,9 +28,6 @@ formats        = getattr(settings, 'SYNTH_FORMATS', {
 
 print('Loaded synth; version: %s; default engine: %s.' % (synth.version(), default_engine))
 
-
-xxx_original_context = None
-
 class SynthTemplate(object):
     def __init__(self, source, engine_name=default_engine, directories=[]):
         try:
@@ -53,19 +50,17 @@ class SynthTemplate(object):
                 raise
 
     def render(self, context):
-        print 'context', context, dir(context)
-        global xxx_original_context
-        xxx_original_context = context
-        ### TODO: return self.template.render_to_string(context)
+        # print 'context', context, dir(context)
+        return self.template.render_to_string(context)
 
+        '''
+        flat = SynthContext({})
         # Flatten the django context into a single dictionary.
-        context_dict = {}
         for d in context.dicts:
-            context_dict.update(d)
+            flat.update(d)
 
-        return self.template.render_to_string(context_dict)
-
-
+        return self.template.render_to_string(flat)
+        '''
 
 
 def get_arg_names(name, tag):
@@ -78,16 +73,13 @@ def get_arg_names(name, tag):
             raise Exception('Unable to get arguments names for tag: ' + name)
 
 
-
-
 def load_library(name):
-    print 'load_library', name
+    # print 'load_library', name
     return SynthLibrary(base.get_library(name))
 
 
 CUSTOM_ARGUMENT_NAMES=('parser', 'token')
 
-''' TODO:
 class SynthContext(dict):
     def __init__(self, dict):
         super(SynthContext, self).__init__(dict)
@@ -96,7 +88,6 @@ class SynthContext(dict):
         self.use_l10n    = None
         self.use_tz      = None
 
-'''
 
 class SynthTag(object):
     def __init__(self, name, tag):
@@ -115,6 +106,7 @@ class SynthTag(object):
         parser = SynthParser(tokens, nodelists)
         return SynthNode(self.tag(parser, parser.next_token()), nodelists)
 
+
 class SynthNode(base.Node):
     def __init__(self, node, nodelists):
         super(SynthNode, self).__init__()
@@ -124,14 +116,14 @@ class SynthNode(base.Node):
     def __repr__(self):
         return '<SynthNode>'
 
-    def __call__(self, match, *args, **kwargs):
+    def __call__(self, context, match, *args, **kwargs):
         print 'SynthNode.__call__', match, args, kwargs
 
         for nodelist in self.nodelists:
             nodelist.match = match
-            # print 'sss', repr(nodelist.render(xxx_original_context))
+            # print 'sss', repr(nodelist.render(context))
 
-        return self.node.render(xxx_original_context)
+        return self.node.render(context)
 
 string_literal = r"""\s*(?:'(\w+)'|"(\w+)")\s*"""
 string_literals = string_literal + r'(?:,' + string_literal + r')*,?'
@@ -204,18 +196,8 @@ class SynthNodeList(base.NodeList):
 
     def render(self, context):
         print 'SynthNodeList.render', self.match
-        return self.renderer(self.match) # TODO: Pass the context
+        return self.renderer(context, self.match) # XXX: mark_safe(...) ?
 
-        """
-        bits = []
-        for node in self:
-            if isinstance(node, Node):
-                bit = self.render_node(node, context)
-            else:
-                bit = node
-            bits.append(force_text(bit))
-        return mark_safe(''.join(bits))
-        """
 
 class SynthToken(base.Token):
     def __init__(self, tag_name, contents, arguments):
@@ -230,9 +212,6 @@ class SynthToken(base.Token):
         print '  tag_name', tag_name
         print '  contents', self.contents
         print '  arguments', self.arguments
-
-    # def __str__(self):
-    #     return ('<%s token: "%s...">' % (self.token_name, self.contents[:20].replace('\n', '')))
 
     def split_contents(self):
         return self.arguments

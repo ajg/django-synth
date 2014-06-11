@@ -38,18 +38,18 @@ source = """
 {{ dt|localtime }}
 
 {% localize on %}
-(value: {{ value }})
+(motto: {{ motto }})
 {% endlocalize %}
 
 {% localize off %}
-(value: {{ value }})
+(motto: {{ motto }})
 {% endlocalize %}
 """
 
 '''
 {% comment %}
 {% localize on %}
-(value: {{ value }})
+(motto: {{ motto }})
 {% endlocalize %}
 {% endcomment %}
 '''
