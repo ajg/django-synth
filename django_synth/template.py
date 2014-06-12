@@ -50,19 +50,19 @@ class SynthTemplate(object):
             else:
                 raise
 
-    def render(self, context):
-        # print 'context', context, dir(context)
-        return self.template.render_to_string(context)
+    def render(self, context_data):
+        # print 'context_data', context_data, dir(context_data)
+        return self.template.render_to_string(context_data) # (SynthContext(context_data))
 
-        '''
-        flat = SynthContext({})
-        # Flatten the django context into a single dictionary.
-        for d in context.dicts:
-            flat.update(d)
-
-        return self.template.render_to_string(flat)
-        '''
-
+'''
+class SynthContext(dict): # (base.Context)
+    def __init__(self, dict):
+        super(SynthContext, self).__init__(dict)
+        self.autoescape  = None
+        self.current_app = None
+        self.use_l10n    = None
+        self.use_tz      = None
+'''
 
 def get_arg_names(name, tag):
     try:
@@ -81,76 +81,46 @@ def load_library(name):
 
 CUSTOM_ARGUMENT_NAMES=('parser', 'token')
 
-class SynthContext(dict):
-    def __init__(self, dict):
-        super(SynthContext, self).__init__(dict)
-        self.autoescape  = None
-        self.current_app = None
-        self.use_l10n    = None
-        self.use_tz      = None
-
-
-class SynthTag(object):
-    def __init__(self, name, tag):
-        self.name = name
-        self.tag  = tag
-
-    def __call__(self, segments):
-        tokens = []
-        nodelists = []
-
-        for pieces, renderer in segments:
-            contents, tag_name, arguments = pieces[0], pieces[1], pieces[1:]
-            tokens.append(SynthToken(tag_name, contents, arguments))
-            nodelists.append(SynthNodeList(tag_name, renderer))
-
-        parser = SynthParser(tokens, nodelists)
-        return SynthNode(self.tag(parser, parser.next_token()), nodelists)
-
-
-class SynthNode(base.Node):
-    def __init__(self, node, nodelists):
-        super(SynthNode, self).__init__()
-        self.node = node
-        self.nodelists = nodelists
-
-    def __repr__(self):
-        return '<SynthNode>'
-
-    def __call__(self, context, match, *args, **kwargs):
-        # print 'SynthNode.__call__', match, args, kwargs
-
-        for nodelist in self.nodelists:
-            nodelist.match = match
-            # print 'sss', repr(nodelist.render(context))
-
-        return self.node.render(context)
 
 string_literal = r"""\s*(?:'(\w+)'|"(\w+)")\s*"""
 string_literals = string_literal + r'(?:,' + string_literal + r')*,?'
 tag_name_pattern = re.compile(r'parser\.parse\(\(' + string_literals + r'\)\)')
 
 
-def make_tag(name, t):
-    arg_names = get_arg_names(name, t)
+def wrap_tag(name, tag):
+    arg_names = get_arg_names(name, tag)
     if arg_names[:2] != CUSTOM_ARGUMENT_NAMES:
-        raise Exception('Invalid argument names: ' + str(arg_names))
+        raise Exception('Invalid tag argument names: ' + str(arg_names))
 
     middle_names, last_names = None, None
-    source = getsource(t)
+    source = getsource(tag)
     names = [item for sublist in tag_name_pattern.findall(source) for item in sublist if item]
-    # print name, arg_names, names, t
+    # print name, arg_names, names, tag
 
     if names:
         middle_names = frozenset([name for name in names if not name.startswith('end')])
         last_names = frozenset([name for name in names if name.startswith('end')] or ['end' + name])
 
-    return (SynthTag(name, t), middle_names, last_names)
+    def tag_wrapper(segments):
+        tokens = []
+        nodelists = []
+
+        for pieces, renderer in segments:
+            print 'block:', pieces
+            contents, tag_name, arguments = pieces[0], pieces[1], pieces[1:]
+            tokens.append(SynthToken(contents, arguments))
+            nodelists.append(SynthNodeList(tag_name, renderer))
+
+        parser = SynthParser(tokens, nodelists)
+        node = tag(parser, parser.next_token())
+        return lambda context_data, *args, **kwargs: node.render(context_data)
+
+    return (tag_wrapper, middle_names, last_names)
 
 
 class SynthLibrary(object):
     def __init__(self, library):
-        self.tags = {name: make_tag(name, t) for name, t in getattr(library, 'tags', {}).items()}
+        self.tags = {name: wrap_tag(name, tag) for name, tag in getattr(library, 'tags', {}).items()}
         self.filters = getattr(library, 'filters', {})
 
 
@@ -195,30 +165,17 @@ class SynthNodeList(base.NodeList):
         super(SynthNodeList, self).__init__()
         self.tag_name = tag_name
         self.renderer = renderer
-        self.match    = None
 
-    def render_node(self, node, context):
-        print 'SynthNodeList.render_node', node
-        return node.render(context)
-
-    def render(self, context):
-        print 'SynthNodeList.render', self.match
-        return self.renderer(context, self.match) # XXX: mark_safe(...) ?
+    def render(self, context_data):
+        print 'SynthNodeList.render'
+        return self.renderer(context_data) # XXX: mark_safe(...) ?
 
 
 class SynthToken(base.Token):
-    def __init__(self, tag_name, contents, arguments):
+    def __init__(self, contents, arguments):
         super(SynthToken, self).__init__(base.TOKEN_BLOCK, contents)
-        # self.tag_name = tag_name
-        # self.token_type = None     # TODO
-        # self.token_name = tag_name # TODO: TOKEN_MAPPING[token_type]
-        # self.lineno = None         # TODO
-        # self.contents = contents
+        # self.lineno = None # TODO
         self.arguments = arguments
-
-        print '  tag_name', tag_name
-        print '  contents', self.contents
-        print '  arguments', self.arguments
 
     def split_contents(self):
         return self.arguments
