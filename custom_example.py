@@ -1,30 +1,8 @@
 
 from datetime import tzinfo, timedelta, datetime
-
-ZERO = timedelta(0)
-HOUR = timedelta(hours=1)
-
-class UTC(tzinfo):
-    """UTC"""
-
-    def utcoffset(self, dt):
-        return ZERO
-
-    def tzname(self, dt):
-        return "UTC"
-
-    def dst(self, dt):
-        return ZERO
-
-
-
 from django.template import Context
 from django_synth.template import SynthTemplate
 
-context = Context({
-  'motto': 'May the Force be with you.',
-  'dt': datetime.now(UTC()),
-})
 source = """
 
 {% load l10n %}
@@ -44,14 +22,35 @@ source = """
 {% localize off %}
 (motto: {{ motto }})
 {% endlocalize %}
+
+{% localtime on %}
+(dt: {{ dt }})
+{% endlocaltime %}
+
+{% localtime off %}
+(dt: {{ dt }})
+{% endlocaltime %}
+
+{% get_current_timezone as TIME_ZONE %}
+({{ TIME_ZONE }})
 """
 
-'''
-{% comment %}
-{% localize on %}
-(motto: {{ motto }})
-{% endlocalize %}
-{% endcomment %}
-'''
+ZERO = timedelta(0)
+HOUR = timedelta(hours=1)
 
-print SynthTemplate(source).render(context)
+class UTC(tzinfo):
+    """UTC"""
+
+    def utcoffset(self, dt):
+        return ZERO
+
+    def tzname(self, dt):
+        return "UTC"
+
+    def dst(self, dt):
+        return ZERO
+
+print SynthTemplate(source).render(Context({
+    'motto': 'May the Force be with you.',
+    'dt': datetime.now(UTC()),
+}))
