@@ -45,6 +45,9 @@ source = """
 {% timezone None %}
 (dt: {{ dt }})
 {% endtimezone %}
+
+{% load static %}
+<img src="{% static "images/hi.jpg" %}" alt="Hi!" />
 """
 
 ZERO = timedelta(0)
