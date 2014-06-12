@@ -99,7 +99,7 @@ class SynthTag(object):
         nodelists = []
 
         for pieces, renderer in segments:
-            contents, tag_name, arguments = pieces[0], pieces[1], pieces[2:]
+            contents, tag_name, arguments = pieces[0], pieces[1], pieces[1:]
             tokens.append(SynthToken(tag_name, contents, arguments))
             nodelists.append(SynthNodeList(tag_name, renderer))
 
