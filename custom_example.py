@@ -33,6 +33,18 @@ source = """
 
 {% get_current_timezone as TIME_ZONE %}
 ({{ TIME_ZONE }})
+
+{% timezone "America/New_York" %}
+(dt: {{ dt }})
+{% endtimezone %}
+
+{% timezone "Europe/Paris" %}
+(dt: {{ dt }})
+{% endtimezone %}
+
+{% timezone None %}
+(dt: {{ dt }})
+{% endtimezone %}
 """
 
 ZERO = timedelta(0)
