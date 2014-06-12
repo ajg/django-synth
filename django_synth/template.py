@@ -102,16 +102,7 @@ def wrap_tag(name, tag):
         last_names = frozenset([name for name in names if name.startswith('end')] or ['end' + name])
 
     def tag_wrapper(segments):
-        tokens = []
-        nodelists = []
-
-        for pieces, renderer in segments:
-            print 'block:', pieces
-            contents, tag_name, arguments = pieces[0], pieces[1], pieces[1:]
-            tokens.append(SynthToken(contents, arguments))
-            nodelists.append(SynthNodeList(tag_name, renderer))
-
-        parser = SynthParser(tokens, nodelists)
+        parser = SynthParser(segments)
         node = tag(parser, parser.next_token())
         return lambda context_data, *args, **kwargs: node.render(context_data)
 
@@ -125,9 +116,17 @@ class SynthLibrary(object):
 
 
 class SynthParser(base.Parser):
-    def __init__(self, tokens, nodelists):
+    def __init__(self, segments):
+        tokens = []
+        nodelists = []
+
+        for pieces, renderer in segments:
+            print 'segment:', pieces
+            contents, tag_name, arguments = pieces[0], pieces[1], pieces[1:]
+            tokens.append(SynthToken(contents, arguments))
+            nodelists.append(SynthNodeList(tag_name, renderer))
+
         super(SynthParser, self).__init__(tokens)
-        # self.tokens    = tokens
         self.nodelists = nodelists
         self.t         = 0
         self.n         = 0
