@@ -24,6 +24,7 @@ formats        = getattr(settings, 'SYNTH_FORMATS', {
     'SHORT_DATETIME_FORMAT': settings.SHORT_DATETIME_FORMAT,
     'TIME_FORMAT':           settings.TIME_FORMAT,
     'YEAR_MONTH_FORMAT':     settings.YEAR_MONTH_FORMAT,
+    'SPACE_FORMAT':          '\xa0',
 })
 
 print('Loaded synth; version: %s; default engine: %s.' % (synth.version(), default_engine))
