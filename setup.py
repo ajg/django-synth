@@ -27,7 +27,7 @@ classifiers = [
 ]
 
 requirements = [
-    'synth >=0.69',
+    'synth >=0.69.1',
     'django >=1.4',
 ]
 
