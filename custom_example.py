@@ -48,6 +48,7 @@ source = """
 
 {% load static %}
 <img src="{% static "images/hi.jpg" %}" alt="Hi!" />
+
 """
 
 ZERO = timedelta(0)
