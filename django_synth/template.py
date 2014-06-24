@@ -35,7 +35,6 @@ print('Loaded synth; version: %s; default engine: %s; debug: %s.' %
 
 class SynthTemplate(object):
     def __init__(self, source, dirs=None):
-        if debug: print '# SynthTemplate.__init__', repr(source)
         try:
             self.template = synth.Template(
                 source,
@@ -55,23 +54,17 @@ class SynthTemplate(object):
                 raise
 
     def render(self, context):
-        if debug: print '# SynthTemplate.render', context
-
         return self.template.render_to_string(context)
 
 
 class SynthLibrary(object):
     def __init__(self, library):
-        if debug: print '# SynthLibrary.__init__', library
-
         self.tags = {name: wrap_tag(name, tag) for name, tag in getattr(library, 'tags', {}).items()}
         self.filters = getattr(library, 'filters', {})
 
 
 class SynthParser(base.Parser):
     def __init__(self, segments):
-        if debug: print '# SynthParser.__init__'
-
         super(SynthParser, self).__init__(map(SynthToken, segments))
         self.index = 0
 
@@ -80,33 +73,23 @@ class SynthParser(base.Parser):
             self.index += 1
 
     def parse(self, tag_names=None):
-        if debug: print '# SynthParser.parse', self.index, tag_names
-
         if tag_names: self.advance_until(tag_names)
         return SynthNodeList(self.tokens[self.index - 1])
 
     def skip_past(self, tag_name):
-        if debug: print '# SynthParser.skip_past', self.index, tag_name
-
         self.advance_until((tag_name,))
 
     def next_token(self):
-        if debug: print '# SynthParser.next_token', self.index
-
         i = self.index
         self.index += 1
         return self.tokens[i]
 
     def delete_first_token(self):
-        if debug: print '# SynthParser.delete_first_token', self.index
-
         self.index += 1
 
 
 class SynthToken(base.Token):
     def __init__(self, segment):
-        if debug: print '# SynthToken.__init__', segment
-
         self.pieces, self.renderer = segment
         contents = self.pieces[0]
         # self.tag_name = self.pieces[1]
@@ -115,21 +98,15 @@ class SynthToken(base.Token):
         super(SynthToken, self).__init__(base.TOKEN_BLOCK, contents)
 
     def split_contents(self):
-        if debug: print '# SynthToken.split_contents', self.pieces
-
         return self.pieces[1:]
 
 
 class SynthNodeList(base.NodeList):
     def __init__(self, token):
-        if debug: print '# SynthNodeList.__init__', token
-
         super(SynthNodeList, self).__init__()
         self.renderer = token.renderer
 
     def render(self, context):
-        if debug: print '# SynthNodeList.render'#, context
-
         return self.renderer(context, **to_metadata(context)) # XXX: mark_safe?
 
 def to_metadata(context):
@@ -156,8 +133,6 @@ def to_metadata(context):
 
 
 def render_node(node, context, caseless=False, safe=False, application=None, timezone=None, language=None, formats=None, **kwargs):
-    if debug: print '# SynthRender', caseless, safe, application, timezone, language, formats
-
     context.autoescape  = not safe
     context.current_app = application
     context.use_tz      = bool(timezone)
@@ -188,7 +163,6 @@ def get_arg_names(name, tag):
 
 
 def load_library(name):
-    if debug: print '# SynthLoad', repr(name)
     return SynthLibrary(base.get_library(name))
 
 
@@ -201,8 +175,6 @@ tag_name_pattern = re.compile(r'parser\.parse\(\(' + string_literals + r'\)\)')
 
 
 def wrap_tag(name, tag):
-    if debug: print '# SynthWrap', repr(name), tag
-
     arg_names = get_arg_names(name, tag)
     if arg_names[:2] != CUSTOM_ARGUMENT_NAMES:
         raise Exception('Invalid tag argument names: ' + str(arg_names))
