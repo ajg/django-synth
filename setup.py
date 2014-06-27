@@ -44,4 +44,6 @@ setup(
     url = 'https://github.com/ajg/django-synth',
     install_requires = requirements,
     classifiers = classifiers,
+    packages=["django_synth"],
+    package_dir={"django_synth": "django_synth"},
 )
