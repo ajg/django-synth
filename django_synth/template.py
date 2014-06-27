@@ -16,8 +16,8 @@ if not settings.configured:
 
 # TODO: Make private.
 engine      = getattr(settings, 'SYNTH_ENGINE',      'django')
-directories = getattr(settings, 'SYNTH_DIRECTORIES', settings.TEMPLATE_DIRS or [])
-debug       = getattr(settings, 'SYNTH_DEBUG',       settings.TEMPLATE_DEBUG)
+directories = getattr(settings, 'SYNTH_DIRECTORIES', list(settings.TEMPLATE_DIRS or []))
+debug       = getattr(settings, 'SYNTH_DEBUG',       bool(settings.TEMPLATE_DEBUG))
 formats     = getattr(settings, 'SYNTH_FORMATS', {
     'TEMPLATE_STRING_IF_INVALID': settings.TEMPLATE_STRING_IF_INVALID,
     'DATE_FORMAT':                settings.DATE_FORMAT,
