@@ -1,6 +1,7 @@
 ##  (C) Copyright 2014 Alvaro J. Genial (http://alva.ro)
 
-from distutils.core import setup
+# from distutils.core import setup
+from setuptools import setup
 
 long_description='''
 This package provides a module with template loaders designed to seamlessly
