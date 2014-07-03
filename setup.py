@@ -28,13 +28,13 @@ classifiers = [
 ]
 
 requirements = [
-    'synth >=0.72.0',
+    'synth >=0.72.3',
     'django >=1.4',
 ]
 
 setup(
     name = 'django-synth',
-    version = '0.5.3',
+    version = '0.5.7',
     description = 'A Simple Integration Between Django and Synth',
     long_description = long_description,
     keywords = 'django, tmpl, ssi, template, framework',
