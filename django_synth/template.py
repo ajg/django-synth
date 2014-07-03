@@ -1,7 +1,10 @@
 ##  (C) Copyright 2014 Alvaro J. Genial (http://alva.ro)
 
+from __future__ import print_function
+
 import re
 import synth
+import sys
 import django.template.base as base
 import django.utils.timezone as tz
 
@@ -29,23 +32,25 @@ formats     = getattr(settings, 'SYNTH_FORMATS', {
     'YEAR_MONTH_FORMAT':          settings.YEAR_MONTH_FORMAT,
 })
 
+
 print('Loaded synth; version: %s; default engine: %s; debug: %s.' %
-    (synth.version(), engine, 'ON' if debug else 'OFF'))
+    (synth.version(), engine, 'ON' if debug else 'OFF'), file=sys.stderr)
+
+
+synth.Template.set_default_options({
+    'formats':     formats,
+    'debug':       debug,
+    'directories': directories,
+    'loaders':     [lambda name: SynthLibrary(base.get_library(name))],
+    'resolvers':   [urlresolvers],
+})
 
 
 class SynthTemplate(object):
     def __init__(self, source, dirs=None):
         try:
-            self.template = synth.Template(
-                source,
-                engine,
-                formats,
-                debug,
-                dirs or directories,
-                {},
-                [load_library],
-                [urlresolvers],
-            )
+            options = None if not dirs else {'directories': dirs}
+            self.template = synth.Template(source, engine, options)
         except RuntimeError as e:
             message = str(e)
             if 'parsing error' in message:
@@ -162,10 +167,6 @@ def get_arg_names(name, tag):
             raise Exception('Unable to get arguments names for tag: ' + name)
 
 
-def load_library(name):
-    return SynthLibrary(base.get_library(name))
-
-
 CUSTOM_ARGUMENT_NAMES=('parser', 'token')
 
 
@@ -180,12 +181,18 @@ def wrap_tag(name, tag):
         raise Exception('Invalid tag argument names: ' + str(arg_names))
 
     middle_names, last_names = None, None
-    source = getsource(tag)
-    names = [item for sublist in tag_name_pattern.findall(source) for item in sublist if item]
 
-    if names:
-        middle_names = frozenset([name for name in names if not name.startswith('end')])
-        last_names   = frozenset([name for name in names if name.startswith('end')] or ['end' + name])
+    # Special-cased because the implementation is bizarre.
+    if name == 'blocktrans':
+        middle_names = frozenset(('plural',))
+        last_names   = frozenset(('endblocktrans',))
+    else:
+        source = getsource(tag)
+        names = [item for sublist in tag_name_pattern.findall(source) for item in sublist if item]
+
+        if names:
+            middle_names = frozenset([str(name) for name in names if not name.startswith('end')])
+            last_names   = frozenset([str(name) for name in names if name.startswith('end')] or ['end' + name])
 
     is_simple   = False
     is_dataless = False
@@ -193,6 +200,6 @@ def wrap_tag(name, tag):
     def tag_wrapper(segments):
         parser = SynthParser(segments)
         node   = tag(parser, parser.next_token())
-        return lambda context, *args, **kwargs: render_node(node, context, **kwargs)
+        return lambda context, *args, **kwargs: str(render_node(node, context, **kwargs))
 
     return (tag_wrapper, middle_names, last_names, is_simple, is_dataless)
