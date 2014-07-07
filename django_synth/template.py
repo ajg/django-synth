@@ -112,15 +112,15 @@ class SynthNodeList(base.NodeList):
         self.renderer = token.renderer
 
     def render(self, context):
-        return self.renderer(context, **to_metadata(context)) # XXX: mark_safe?
+        return self.renderer(context, get_options_from(context)) # XXX: mark_safe?
 
-def to_metadata(context):
+def get_options_from(context):
     if context.use_tz or tz.get_current_timezone_name() != tz.get_default_timezone_name():
         timezone = tz.get_current_timezone()
     else:
         timezone = None
 
-    metadata = {
+    options = {
         'caseless':    False,
         'safe':        not context.autoescape,
         'application': context.current_app,
@@ -134,20 +134,30 @@ def to_metadata(context):
         },
     }
 
-    return metadata
+    return options
 
 
-def render_node(node, context, caseless=False, safe=False, application=None, timezone=None, language=None, formats=None, **kwargs):
+def render_node(node, context, options, args, kwargs):
+    if not options:
+        return node.render(context)
+
+    safe        = options['safe']
+    application = options['application']
+    timezone    = options['timezone']
+    language    = options['language']
+    localized   = options['localized']
+  # formats     = options['formats']
+
     context.autoescape  = not safe
     context.current_app = application
     context.use_tz      = bool(timezone)
     context.use_i18n    = bool(language)
-    context.use_l10n    = bool(formats)
+    context.use_l10n    = bool(localized)
 
     if language:
         activate(language[0])
 
-    if formats:
+    if localized:
         pass # TODO
 
     if timezone:
@@ -200,6 +210,6 @@ def wrap_tag(name, tag):
     def tag_wrapper(segments):
         parser = SynthParser(segments)
         node   = tag(parser, parser.next_token())
-        return lambda context, *args, **kwargs: str(render_node(node, context, **kwargs))
+        return lambda context, options, *args, **kwargs: str(render_node(node, context, options, args, kwargs))
 
     return (tag_wrapper, middle_names, last_names, is_simple, is_dataless)
