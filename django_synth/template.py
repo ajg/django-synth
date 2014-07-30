@@ -2,8 +2,8 @@
 
 from __future__ import print_function
 
+import datetime
 import re
-import synth
 import sys
 import django.template.base as base
 import django.utils.timezone as tz
@@ -12,7 +12,7 @@ from inspect import getargspec, getsource
 from django.conf import settings
 from django.core import urlresolvers
 from django.template import TemplateSyntaxError
-
+import synth
 
 if not settings.configured:
     settings.configure()
@@ -21,6 +21,7 @@ if not settings.configured:
 engine      = getattr(settings, 'SYNTH_ENGINE',      'django')
 directories = getattr(settings, 'SYNTH_DIRECTORIES', list(settings.TEMPLATE_DIRS or []))
 debug       = getattr(settings, 'SYNTH_DEBUG',       bool(settings.TEMPLATE_DEBUG))
+caching     = getattr(settings, 'SYNTH_CACHING',     synth.CACHE_NONE if debug else (synth.CACHE_ALL | synth.CACHE_PER_PROCESS))
 formats     = getattr(settings, 'SYNTH_FORMATS', {
     'TEMPLATE_STRING_IF_INVALID': settings.TEMPLATE_STRING_IF_INVALID,
     'DATE_FORMAT':                settings.DATE_FORMAT,
@@ -32,10 +33,8 @@ formats     = getattr(settings, 'SYNTH_FORMATS', {
     'YEAR_MONTH_FORMAT':          settings.YEAR_MONTH_FORMAT,
 })
 
-
-print('Loaded synth; version: %s; default engine: %s; debug: %s.' %
-    (synth.version(), engine, 'ON' if debug else 'OFF'), file=sys.stderr)
-
+print('Loaded synth; version: %s; default engine: %s; debug: %s; caching: %s.' %
+    (synth.version(), engine, debug, caching), file=sys.stderr)
 
 synth.Template.set_default_options({
     'formats':     formats,
@@ -43,14 +42,36 @@ synth.Template.set_default_options({
     'directories': directories,
     'loaders':     [lambda name: SynthLibrary(base.get_library(name))],
     'resolvers':   [urlresolvers],
+    'caching':     caching,
 })
 
+class Dummy(object):
+    def __enter__(self):
+        pass
+
+    def __exit__(self, type, value, traceback):
+        pass
+
+noop = Dummy()
+
+class Timer(object):
+    def __init__(self, name):
+        self.name = name
+
+    def __enter__(self):
+        self.start = datetime.datetime.now()
+
+    def __exit__(self, type, value, traceback):
+        now = datetime.datetime.now()
+        ms = (now - self.start).microseconds // 1000
+        print('[synth] %s: %dms' % (self.name, ms), file=sys.stderr)
 
 class SynthTemplate(object):
     def __init__(self, source, dirs=None):
         try:
             options = None if not dirs else {'directories': dirs}
-            self.template = synth.Template(source, engine, options)
+            with Timer('parsing') if debug else noop:
+                self.template = synth.Template(source, engine, options)
         except RuntimeError as e:
             message = str(e)
             if 'parsing error' in message:
@@ -59,13 +80,14 @@ class SynthTemplate(object):
                 raise
 
     def render(self, context):
-        return self.template.render_to_string(context)
+        with Timer('rendering') if debug else noop:
+            return self.template.render_to_string(context)
 
 
 class SynthLibrary(object):
     def __init__(self, library):
-        self.tags = {name: wrap_tag(name, tag) for name, tag in getattr(library, 'tags', {}).items()}
-        self.filters = getattr(library, 'filters', {})
+        self.tags    = {name: wrap_tag(name, fn)    for name, fn in getattr(library, 'tags',    {}).items()}
+        self.filters = {name: wrap_filter(name, fn) for name, fn in getattr(library, 'filters', {}).items()}
 
 
 class SynthParser(base.Parser):
@@ -184,11 +206,13 @@ string_literal   = r"""\s*(?:'(\w+)'|"(\w+)")\s*"""
 string_literals  = string_literal + r'(?:,' + string_literal + r')*,?'
 tag_name_pattern = re.compile(r'parser\.parse\(\(' + string_literals + r'\)\)')
 
+def wrap_filter(name, fn):
+    return lambda value, *args, **kwargs: fn(value, *args)
 
-def wrap_tag(name, tag):
-    arg_names = get_arg_names(name, tag)
+def wrap_tag(name, fn):
+    arg_names = get_arg_names(name, fn)
     if arg_names[:2] != CUSTOM_ARGUMENT_NAMES:
-        raise Exception('Invalid tag argument names: ' + str(arg_names))
+        raise Exception('Invalid tag argument names: %s' % arg_names)
 
     middle_names, last_names = None, None
 
@@ -197,19 +221,19 @@ def wrap_tag(name, tag):
         middle_names = frozenset(('plural',))
         last_names   = frozenset(('endblocktrans',))
     else:
-        source = getsource(tag)
+        source = getsource(fn)
         names = [item for sublist in tag_name_pattern.findall(source) for item in sublist if item]
 
         if names:
-            middle_names = frozenset([str(name) for name in names if not name.startswith('end')])
-            last_names   = frozenset([str(name) for name in names if name.startswith('end')] or ['end' + name])
+            middle_names = frozenset([name for name in names if not name.startswith('end')])
+            last_names   = frozenset([name for name in names if name.startswith('end')] or ['end' + name])
 
     is_simple   = False
     is_dataless = False
 
     def tag_wrapper(segments):
         parser = SynthParser(segments)
-        node   = tag(parser, parser.next_token())
-        return lambda context, options, *args, **kwargs: str(render_node(node, context, options, args, kwargs))
+        node   = fn(parser, parser.next_token())
+        return lambda context, options, *args, **kwargs: render_node(node, context, options, args, kwargs)
 
     return (tag_wrapper, middle_names, last_names, is_simple, is_dataless)
