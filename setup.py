@@ -9,7 +9,7 @@ connect Django to Synth, taking into account the appropriate settings, etc.
 '''
 
 classifiers = [
-    'Development Status :: 3 - Alpha',
+    'Development Status :: 4 - Beta',
     'Environment :: Console',
     'Framework :: Django',
     'Intended Audience :: Developers',
