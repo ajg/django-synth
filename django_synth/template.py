@@ -7,6 +7,7 @@ import re
 import sys
 import django.template.base as base
 import django.utils.timezone as tz
+import django.utils.translation as tr
 
 from inspect import getargspec, getsource
 from django.conf import settings
@@ -85,7 +86,6 @@ class SynthTemplate(object):
     def render(self, context):
         with Timer('rendering') if debug else noop:
             return self.template.render_to_string(context)
-
 
 class SynthLibrary(object):
     def __init__(self, library):
