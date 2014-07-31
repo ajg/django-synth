@@ -33,14 +33,17 @@ formats     = getattr(settings, 'SYNTH_FORMATS', {
     'YEAR_MONTH_FORMAT':          settings.YEAR_MONTH_FORMAT,
 })
 
-print('Loaded synth; version: %s; default engine: %s; debug: %s; caching: %s.' %
-    (synth.version(), engine, debug, caching), file=sys.stderr)
+print('Loaded synth; version: %s; default engine: %s; debug: %s.' %
+    (synth.version(), engine, debug), file=sys.stderr)
+
+def load_library(name):
+    return SynthLibrary(base.get_library(name))
 
 synth.Template.set_default_options({
     'formats':     formats,
     'debug':       debug,
     'directories': directories,
-    'loaders':     [lambda name: SynthLibrary(base.get_library(name))],
+    'loaders':     [load_library],
     'resolvers':   [urlresolvers],
     'caching':     caching,
 })
@@ -177,7 +180,7 @@ def render_node(node, context, options, args, kwargs):
     context.use_l10n    = bool(localized)
 
     if language:
-        activate(language[0])
+        tr.activate(language[0])
 
     if localized:
         pass # TODO
