@@ -9,3 +9,4 @@ branches:
 script:
   - travis_wait python setup.py build
   - sudo python setup.py install
+  - python tests/simple_template.py
