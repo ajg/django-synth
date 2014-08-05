@@ -48,4 +48,5 @@ setup(
     classifiers = classifiers,
     packages=["django_synth"],
     package_dir={"django_synth": "django_synth"},
+    zip_safe=True,
 )
