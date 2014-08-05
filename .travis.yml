@@ -6,6 +6,10 @@ branches:
   only:
     - master
 
+before_install:
+  - python --version
+  - pip --version
+
 install:
   - pip install django
 
