@@ -6,6 +6,9 @@ branches:
   only:
     - master
 
+install:
+  - pip install django
+
 script:
   - travis_wait python setup.py build
   - sudo python setup.py install
