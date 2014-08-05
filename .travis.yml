@@ -16,7 +16,7 @@ before_install:
 
 install:
   - pip install django
-  - pip install synth
+  - travis_wait pip install synth
 
 script:
   - sudo python setup.py install && python tests/simple_template.py
