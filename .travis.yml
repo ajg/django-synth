@@ -6,6 +6,10 @@ branches:
   only:
     - master
 
+os:
+  - osx
+  - linux
+
 before_install:
   - python --version
   - pip --version
@@ -15,6 +19,4 @@ install:
   - pip install synth
 
 script:
-  - python setup.py build
-  - sudo python setup.py install
-  - python tests/simple_template.py
+  - sudo python setup.py install && python tests/simple_template.py
