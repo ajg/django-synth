@@ -3,27 +3,22 @@
 from __future__ import print_function
 
 import datetime
-import re
-import sys
 import django.template.base as base
 import django.utils.timezone as tz
 import django.utils.translation as tr
+import re
+import synth
+import sys
 
 from inspect import getargspec, getsource
 from django.conf import settings
 from django.core import urlresolvers
 from django.template import TemplateSyntaxError
-import synth
 
 if not settings.configured:
     settings.configure()
 
-# TODO: Make private.
-engine      = getattr(settings, 'SYNTH_ENGINE',      'django')
-directories = getattr(settings, 'SYNTH_DIRECTORIES', list(settings.TEMPLATE_DIRS or []))
-debug       = getattr(settings, 'SYNTH_DEBUG',       bool(settings.TEMPLATE_DEBUG))
-caching     = getattr(settings, 'SYNTH_CACHING',     synth.CACHE_NONE if debug else (synth.CACHE_ALL | synth.CACHE_PER_PROCESS))
-formats     = getattr(settings, 'SYNTH_FORMATS', {
+default_formats = {
     'TEMPLATE_STRING_IF_INVALID': settings.TEMPLATE_STRING_IF_INVALID,
     'DATE_FORMAT':                settings.DATE_FORMAT,
     'DATETIME_FORMAT':            settings.DATETIME_FORMAT,
@@ -32,13 +27,24 @@ formats     = getattr(settings, 'SYNTH_FORMATS', {
     'SHORT_DATETIME_FORMAT':      settings.SHORT_DATETIME_FORMAT,
     'TIME_FORMAT':                settings.TIME_FORMAT,
     'YEAR_MONTH_FORMAT':          settings.YEAR_MONTH_FORMAT,
-})
+}
+
+# TODO: Make variables private.
+engine      = getattr(settings, 'SYNTH_ENGINE',      'django')
+directories = getattr(settings, 'SYNTH_DIRECTORIES', list(settings.TEMPLATE_DIRS or []))
+debug       = getattr(settings, 'SYNTH_DEBUG',       bool(settings.TEMPLATE_DEBUG))
+cache       = getattr(settings, 'SYNTH_CACHE',       not debug)
+formats     = getattr(settings, 'SYNTH_FORMATS',     default_formats)
 
 print('Loaded synth; version: %s; default engine: %s; debug: %s.' %
     (synth.version(), engine, debug), file=sys.stderr)
 
 def load_library(name):
     return SynthLibrary(base.get_library(name))
+
+caching_off = synth.CACHE_NONE
+caching_on  = synth.CACHE_ALL | synth.CACHE_PER_PROCESS
+caching     = caching_off if debug else caching_on
 
 synth.Template.set_default_options({
     'formats':     formats,
@@ -49,14 +55,14 @@ synth.Template.set_default_options({
     'caching':     caching,
 })
 
-class Dummy(object):
+class NullContextManager(object):
     def __enter__(self):
         pass
 
     def __exit__(self, type, value, traceback):
         pass
 
-noop = Dummy()
+noop = NullContextManager()
 
 class Timer(object):
     def __init__(self, name):
@@ -185,10 +191,7 @@ def render_node(node, context, options, args, kwargs):
     if localized:
         pass # TODO
 
-    if timezone:
-        with tz.override(timezone):
-            return node.render(context)
-    else:
+    with tz.override(timezone) if timezone else noop:
         return node.render(context)
 
 
