@@ -243,3 +243,6 @@ def wrap_tag(name, fn):
         return lambda context, options, *args, **kwargs: render_node(node, context, options, args, kwargs)
 
     return (tag_wrapper, middle_names, last_names, is_simple, is_dataless)
+
+class SynthContext(base.Context):
+    pass
