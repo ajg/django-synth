@@ -13,8 +13,21 @@ os:
 before_install:
   - python --version
   - pip --version
+  - sudo apt-get install clang
+  - sudo ln -s /usr/bin/gcc /usr/bin/clang
+  - sudo ln -s /usr/bin/g++ /usr/bin/clang++
+  - export CC=/usr/bin/clang
+  - export CXX=/usr/bin/clang++
+  - gcc --version
+  - g++ --version
+  - clang --version
+  - clang++ --version
 
 install:
+  - gcc --version
+  - g++ --version
+  - clang --version
+  - clang++ --version
   - pip install django
   - travis_wait pip install synth
 
