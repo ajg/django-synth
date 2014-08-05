@@ -1,0 +1,7 @@
+##  (C) Copyright 2014 Alvaro J. Genial (http://alva.ro)
+
+language: python
+
+script:
+  - travis_wait python setup.py build
+  - sudo python setup.py install
