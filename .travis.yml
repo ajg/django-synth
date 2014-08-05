@@ -2,6 +2,10 @@
 
 language: python
 
+branches:
+  only:
+    - master
+
 script:
   - travis_wait python setup.py build
   - sudo python setup.py install
