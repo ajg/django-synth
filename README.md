@@ -28,35 +28,35 @@ Usage
 Settings
 --------
 
-### `settings.SYNTH_ENGINE`
+#### `settings.SYNTH_ENGINE`
 
   Which template syntax to use: `"django"`, `"ssi"` or `"tmpl"`.
 
   - Type:    `str`
   - Default: `"django"`
 
-### `settings.SYNTH_DIRECTORIES`
+#### `settings.SYNTH_DIRECTORIES`
 
   Where to look for templates.
 
   - Type:    `list` of `str`
   - Default: `settings.TEMPLATE_DIRS`
 
-### `settings.SYNTH_DEBUG`
+#### `settings.SYNTH_DEBUG`
    
   Whether to enable debugging (slower but more informative.)
 
   - Type:    `bool`
   - Default: `settings.TEMPLATE_DEBUG`
 
-### `settings.SYNTH_CACHE`
+#### `settings.SYNTH_CACHE`
 
   Whether to enable caching.
 
   - Type:    `bool`
   - Default: `False` when debugging, `True` otherwise
 
-### `settings.SYNTH_FORMATS`
+#### `settings.SYNTH_FORMATS`
 
   What formats strings to use.
 
@@ -74,6 +74,6 @@ Settings
 Future Work
 -----------
 
- - Complete test suite
- - More documentation
+ - More tests
+ - Better documentation
  - Example project
