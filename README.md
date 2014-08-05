@@ -16,7 +16,7 @@ Usage
 
  1. Add it to your `requirements.txt` or equivalent:
 
-        django-synth>=0.6.1
+        django-synth>=0.7.0
 
  2. Enable it in your `settings.py` or equivalent:
 
