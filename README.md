@@ -3,6 +3,8 @@ django-synth
 
 A bridge between [Django] and [Synth] that enables fast, efficient parsing and rendering of templates natively, with the goal of requiring no changes.
 
+[![Build Status]](https://travis-ci.org/ajg/django-synth)
+
 [Django]: https://djangoproject.com
 [Synth]:  https://github.com/ajg/synth
 
@@ -43,7 +45,7 @@ Settings
   - Default: `settings.TEMPLATE_DIRS`
 
 #### `settings.SYNTH_DEBUG`
-   
+
   Whether to enable debugging (slower but more informative.)
 
   - Type:    `bool`
