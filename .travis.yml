@@ -26,10 +26,10 @@ before_install:
   - clang++ --version
 
 install:
-  - sudo pip install django
+  - travis_wait sudo pip install django
   - travis_wait sudo pip install synth
 
 script:
-  - python setup.py build
+  - sudo python setup.py build
   - sudo python setup.py install
   - sudo python tests/simple_template.py
