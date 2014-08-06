@@ -14,24 +14,22 @@ before_install:
   - python --version
   - pip --version
   - sudo apt-get install clang
+  - gcc --version
+  - g++ --version
   - sudo rm /usr/bin/gcc
   - sudo rm /usr/bin/g++
   - sudo ln -s /usr/bin/clang   /usr/bin/gcc
   - sudo ln -s /usr/bin/clang++ /usr/bin/g++
   - export CC=/usr/bin/clang
   - export CXX=/usr/bin/clang++
-  - gcc --version
-  - g++ --version
   - clang   --version
   - clang++ --version
 
 install:
-  - gcc --version
-  - g++ --version
-  - clang --version
-  - clang++ --version
   - sudo pip install django
   - travis_wait sudo pip install synth
 
 script:
-  - sudo python setup.py install && python tests/simple_template.py
+  - python setup.py build
+  - sudo python setup.py install
+  - sudo python tests/simple_template.py
