@@ -30,8 +30,8 @@ install:
   - g++ --version
   - clang --version
   - clang++ --version
-  - pip install django
-  - travis_wait pip install synth
+  - sudo pip install django
+  - travis_wait sudo pip install synth
 
 script:
   - sudo python setup.py install && python tests/simple_template.py
