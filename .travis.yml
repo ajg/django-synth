@@ -14,13 +14,15 @@ before_install:
   - python --version
   - pip --version
   - sudo apt-get install clang
-  - sudo ln -s /usr/bin/gcc /usr/bin/clang
-  - sudo ln -s /usr/bin/g++ /usr/bin/clang++
+  - sudo rm /usr/bin/gcc
+  - sudo rm /usr/bin/g++
+  - sudo ln -s /usr/bin/clang   /usr/bin/gcc
+  - sudo ln -s /usr/bin/clang++ /usr/bin/g++
   - export CC=/usr/bin/clang
   - export CXX=/usr/bin/clang++
   - gcc --version
   - g++ --version
-  - clang --version
+  - clang   --version
   - clang++ --version
 
 install:
