@@ -5,8 +5,9 @@ A bridge between [Django] and [Synth] that enables fast, efficient parsing and r
 
 [![Build Status]](https://travis-ci.org/ajg/django-synth)
 
-[Django]: https://djangoproject.com
-[Synth]:  https://github.com/ajg/synth
+[Django]:       https://djangoproject.com
+[Synth]:        https://github.com/ajg/synth
+[Build Status]: https://travis-ci.org/ajg/django-synth.png?branch=master
 
 Installation
 ------------
