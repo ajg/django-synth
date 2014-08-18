@@ -1,17 +1,20 @@
 django-synth
 ============
 
-A bridge between [Django] and [Synth] that enables fast, efficient parsing and rendering of templates natively, with the goal of requiring no changes.
+A bridge between [Django] and [Synth] that enables fast, efficient parsing and rendering of templates natively. The goal of `django-synth` is to have achieve compatibility with Django's original template system, including support for custom libraries, tags and filters.
 
+[![PyPI Version]](https://pypi.python.org/pypi/django-synth)
 [![Build Status]](https://travis-ci.org/ajg/django-synth)
 
 [Django]:       https://djangoproject.com
 [Synth]:        https://github.com/ajg/synth
+[PyPI Version]: https://pypip.in/v/django-synth/badge.png
 [Build Status]: https://travis-ci.org/ajg/django-synth.png?branch=master
 
 Installation
 ------------
 
+    pip install pip --upgrade # Ensure wheel support
     pip install django-synth
 
 Usage
