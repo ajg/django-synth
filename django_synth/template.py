@@ -220,7 +220,7 @@ def wrap_tag(name, fn):
     if arg_names[:2] != CUSTOM_ARGUMENT_NAMES:
         raise Exception('Invalid tag argument names: %s' % arg_names)
 
-    middle_names, last_names = None, None
+    middle_names, last_names, is_pure = None, None, False
 
     # Special-cased because the implementation is bizarre.
     if name == 'blocktrans':
@@ -234,15 +234,12 @@ def wrap_tag(name, fn):
             middle_names = frozenset([name for name in names if not name.startswith('end')])
             last_names   = frozenset([name for name in names if name.startswith('end')] or ['end' + name])
 
-    is_simple   = False
-    is_dataless = False
-
     def tag_wrapper(segments):
         parser = SynthParser(segments)
         node   = fn(parser, parser.next_token())
         return lambda context, options, *args, **kwargs: render_node(node, context, options, args, kwargs)
 
-    return (tag_wrapper, middle_names, last_names, is_simple, is_dataless)
+    return (tag_wrapper, middle_names, last_names, is_pure)
 
 class SynthContext(base.Context):
     pass
