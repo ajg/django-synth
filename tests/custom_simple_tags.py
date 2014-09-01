@@ -1,6 +1,5 @@
 ##  (C) Copyright 2014 Alvaro J. Genial (http://alva.ro)
 
-from datetime import tzinfo, timedelta, datetime
 from django import template
 
 register = template.Library()
