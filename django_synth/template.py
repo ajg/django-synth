@@ -6,6 +6,7 @@ import datetime
 import django.template.base as base
 import django.utils.timezone as tz
 import django.utils.translation as tr
+import functools
 import re
 import synth
 import sys
@@ -13,7 +14,7 @@ import sys
 from inspect import getargspec, getsource
 from django.conf import settings
 from django.core import urlresolvers
-from django.template import TemplateSyntaxError
+from django.template import generic_tag_compiler, TemplateSyntaxError
 
 if not settings.configured:
     settings.configure()
@@ -168,6 +169,7 @@ def get_options_from(context):
     return options
 
 
+
 def render_node(node, context, options, args, kwargs):
     if not options:
         return node.render(context)
@@ -194,7 +196,6 @@ def render_node(node, context, options, args, kwargs):
     with tz.override(timezone) if timezone else noop:
         return node.render(context)
 
-
 def get_arg_names(name, tag):
     try:
         return tag.func_code.co_varnames # Includes optional args
@@ -215,24 +216,30 @@ tag_name_pattern = re.compile(r'parser\.parse\(\(' + string_literals + r'\)\)')
 def wrap_filter(name, fn):
     return lambda value, *args, **kwargs: fn(value, *args)
 
-def wrap_tag(name, fn):
-    arg_names = get_arg_names(name, fn)
-    if arg_names[:2] != CUSTOM_ARGUMENT_NAMES:
-        raise Exception('Invalid tag argument names: %s' % arg_names)
 
+def wrap_tag(name, fn):
     middle_names, last_names = None, None
 
-    # Special-cased because the implementation is bizarre.
-    if name == 'blocktrans':
-        middle_names = frozenset(('plural',))
-        last_names   = frozenset(('endblocktrans',))
+    if isinstance(fn, functools.partial) and fn.func == generic_tag_compiler:
+        # pure = not fn.keywords['takes_context']
+        # simple = 'SimpleNode' in str(fn.keywords['node_class'])
+        pass
     else:
-        source = getsource(fn)
-        names = [item for sublist in tag_name_pattern.findall(source) for item in sublist if item]
+        arg_names = get_arg_names(name, fn)
+        if arg_names[:2] != CUSTOM_ARGUMENT_NAMES:
+            raise Exception('Invalid tag argument names: %s' % arg_names)
 
-        if names:
-            middle_names = frozenset([name for name in names if not name.startswith('end')])
-            last_names   = frozenset([name for name in names if name.startswith('end')] or ['end' + name])
+        # Special-cased because the implementation is bizarre.
+        if name == 'blocktrans':
+            middle_names = frozenset(('plural',))
+            last_names   = frozenset(('endblocktrans',))
+        else:
+            source = getsource(fn)
+            names = [item for sublist in tag_name_pattern.findall(source) for item in sublist if item]
+
+            if names:
+                middle_names = frozenset([name for name in names if not name.startswith('end')])
+                last_names   = frozenset([name for name in names if name.startswith('end')] or ['end' + name])
 
     is_simple   = False
     is_dataless = False
