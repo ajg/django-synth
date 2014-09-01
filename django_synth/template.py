@@ -218,11 +218,11 @@ def wrap_filter(name, fn):
 
 
 def wrap_tag(name, fn):
-    middle_names, last_names = None, None
+    middle_names, last_names, is_pure = None, None, False
 
     if isinstance(fn, functools.partial) and fn.func == generic_tag_compiler:
-        # pure = not fn.keywords['takes_context']
-        # simple = 'SimpleNode' in str(fn.keywords['node_class'])
+        # is_pure = not fn.keywords['takes_context']
+        # is_simple = 'SimpleNode' in str(fn.keywords['node_class'])
         pass
     else:
         arg_names = get_arg_names(name, fn)
@@ -241,15 +241,12 @@ def wrap_tag(name, fn):
                 middle_names = frozenset([name for name in names if not name.startswith('end')])
                 last_names   = frozenset([name for name in names if name.startswith('end')] or ['end' + name])
 
-    is_simple   = False
-    is_dataless = False
-
     def tag_wrapper(segments):
         parser = SynthParser(segments)
         node   = fn(parser, parser.next_token())
         return lambda context, options, *args, **kwargs: render_node(node, context, options, args, kwargs)
 
-    return (tag_wrapper, middle_names, last_names, is_simple, is_dataless)
+    return (tag_wrapper, middle_names, last_names, is_pure)
 
 class SynthContext(base.Context):
     pass
