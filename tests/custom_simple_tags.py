@@ -17,4 +17,9 @@ source = """
 {% identity 1 %}
 """
 
-print SynthTemplate(source).render(template.Context({}))
+expect = '\n\n1\n'
+actual = SynthTemplate(source).render(template.Context({}))
+
+print('expect:', expect)
+print('actual:', actual)
+assert expect == actual

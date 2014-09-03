@@ -57,4 +57,10 @@ source = """
 {% ifswitch 1 2 3 %}B{% else %}C{% endifswitch %}
 """
 
-print SynthTemplate(source).render(template.Context({}))
+expect = '\n\n\nA\nB\nC\n'
+actual = SynthTemplate(source).render(template.Context({}))
+
+print('expect:', expect)
+print('actual:', actual)
+assert expect == actual
+
