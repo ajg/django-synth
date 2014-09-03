@@ -78,15 +78,18 @@ class Timer(object):
         print('[synth] %s: %dms' % (self.name, ms), file=sys.stderr)
 
 class SynthTemplate(object):
-    def __init__(self, source, dirs=None):
+    def __init__(self, source, dirs=None, name=None):
         try:
             options = None if not dirs else {'directories': dirs}
             with Timer('parsing') if debug else noop:
+                # TODO: Pass the optional template name for better errors.
                 self.template = synth.Template(source, engine, options)
         except RuntimeError as e:
             message = str(e)
+            # TODO: Find a less hacky way to translate syntax errors.
             if 'parsing error' in message or 'missing tag' in message:
-                raise TemplateSyntaxError(message)
+                location = ' (%s)' % name if name else ''
+                raise TemplateSyntaxError(message + location)
             else:
                 raise
 

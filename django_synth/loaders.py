@@ -8,7 +8,7 @@ class AppDirectoriesLoader(app_directories.Loader):
 
     def load_template(self, template_name, template_dirs=None):
         source, origin = self.load_template_source(template_name, template_dirs)
-        template = SynthTemplate(source, template_dirs)
+        template = SynthTemplate(source, template_dirs, template_name)
         return template, origin
 
 class FilesystemLoader(filesystem.Loader):
@@ -16,5 +16,5 @@ class FilesystemLoader(filesystem.Loader):
 
     def load_template(self, template_name, template_dirs=None):
         source, origin = self.load_template_source(template_name, template_dirs)
-        template = SynthTemplate(source, template_dirs)
+        template = SynthTemplate(source, template_dirs, template_name)
         return template, origin
