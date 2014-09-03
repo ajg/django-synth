@@ -85,7 +85,7 @@ class SynthTemplate(object):
                 self.template = synth.Template(source, engine, options)
         except RuntimeError as e:
             message = str(e)
-            if 'parsing error' in message:
+            if 'parsing error' in message or 'missing tag' in message:
                 raise TemplateSyntaxError(message)
             else:
                 raise
