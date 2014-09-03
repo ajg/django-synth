@@ -67,6 +67,7 @@ class UTC(tzinfo):
     def dst(self, dt):
         return ZERO
 
+# TODO: Turn into an assertion with expect/actual.
 print SynthTemplate(source).render(Context({
     'motto': 'May the Force be with you.',
     'dt': datetime.now(UTC()),
