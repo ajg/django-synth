@@ -166,7 +166,7 @@ class SynthTokenNodeList(base.NodeList):
 class SynthTemplateNodeList(base.NodeList):
     def __init__(self, source, dirs, name):
         super(SynthTemplateNodeList, self).__init__()
-        
+
         try:
             options = None if not dirs else {'directories': dirs}
             with Timer('parsing') if debug else noop:
@@ -250,8 +250,8 @@ CUSTOM_ARGUMENT_NAMES=('parser', 'token')
 
 
 string_literal   = r"""\s*(?:'(\w+)'|"(\w+)")\s*"""
-string_literals  = string_literal + r'(?:,' + string_literal + r')*,?'
-tag_name_pattern = re.compile(r'parser\.parse\(\(' + string_literals + r'\)\)')
+string_literals  = string_literal + r'(?:,' + string_literal + r')*(,\s*)?'
+tag_name_pattern = re.compile(r'parser\.parse\(\s*\(' + string_literals + r'\)\s*\)')
 
 def wrap_filter(name, fn):
     return lambda value, *args, **kwargs: fn(value, *args)
