@@ -1,7 +1,9 @@
 ##  (C) Copyright 2014 Alvaro J. Genial (http://alva.ro)
 
 import tests.custom_complex_tags
-# TODO: This currently fails on Linux:
-# import tests.custom_libraries
+import tests.django_l10n_library
+import tests.django_static_library
+# TODO: Currently fails on Linux, and might be locale-dependent:
+# import tests.django_tz_library
 import tests.custom_simple_tags
 import tests.trivial_template
