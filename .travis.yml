@@ -32,6 +32,4 @@ install:
 script:
   - sudo python setup.py build
   - sudo python setup.py install
-  - sudo python tests/trivial_template.py
-  - sudo python tests/custom_simple_tags.py
-  - sudo python tests/custom_complex_tags.py
+  - sudo python run_tests.py
