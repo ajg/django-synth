@@ -14,8 +14,8 @@ A bridge between [Django] and [Synth] that enables fast, efficient parsing and r
 Installation
 ------------
 
-    pip install pip --upgrade # Ensure wheel support
-    pip install django-synth
+    pip install pip --upgrade          # Ensure pip has wheel support
+    pip install django-synth --upgrade # Get the latest and greatest
 
 Usage
 -----
@@ -80,6 +80,7 @@ Settings
 Future Work
 -----------
 
- - More tests
- - Better documentation
+ - Single script to run all tests
+ - ReadTheDocs-compatible documentation
+ - Docstrings for all public types and functions
  - Example project
