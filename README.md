@@ -83,4 +83,6 @@ Future Work
  - Single script to run all tests
  - ReadTheDocs-compatible documentation
  - Docstrings for all public types and functions
+ - Use paths for top-level templates (in the loaders) rather than
+   string sources, to avoid copying and enable caching
  - Example project
