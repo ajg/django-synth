@@ -1,6 +1,5 @@
 ##  (C) Copyright 2014 Alvaro J. Genial (http://alva.ro)
 
-# from distutils.core import setup
 from setuptools import setup
 
 long_description='''
@@ -30,7 +29,7 @@ classifiers = [
 ]
 
 requirements = [
-    'synth >=1.0.6',
+    'synth >=1.0.7',
     'django >=1.5',
 ]
 
