@@ -14,7 +14,7 @@ import sys
 from inspect import getargspec, getsource
 from django.conf import settings
 from django.core import urlresolvers
-from django.template import generic_tag_compiler, TemplateSyntaxError
+from django.template import generic_tag_compiler, StringOrigin, TemplateSyntaxError
 
 if not settings.configured:
     settings.configure()
@@ -65,6 +65,7 @@ class NullContextManager(object):
 
 noop = NullContextManager()
 
+
 class Timer(object):
     def __init__(self, name):
         self.name = name
@@ -77,25 +78,37 @@ class Timer(object):
         ms = (now - self.start).microseconds // 1000
         print('[synth] %s: %dms' % (self.name, ms), file=sys.stderr)
 
-class SynthTemplate(object):
-    def __init__(self, source, dirs=None, name=None):
-        try:
-            options = None if not dirs else {'directories': dirs}
-            with Timer('parsing') if debug else noop:
-                # TODO: Pass the optional template name for better errors.
-                self.template = synth.Template(source, engine, options)
-        except RuntimeError as e:
-            message = str(e)
-            # TODO: Find a less hacky way to translate syntax errors.
-            if 'parsing error' in message or 'missing tag' in message:
-                location = ' (%s)' % name if name else ''
-                raise TemplateSyntaxError(message + location)
-            else:
-                raise
+
+class SynthTemplate(object): # TODO: Subclass base.Template, but without calling the constructor.
+    def __init__(self, template_string, dirs=None, name=None, origin=None):
+        # try:
+        #     template_string = force_text(template_string)
+        # except UnicodeDecodeError:
+        #     raise TemplateEncodingError("Templates can only be constructed "
+        #                                 "from unicode or UTF-8 strings.")
+        if debug and origin is None:
+            origin = StringOrigin(template_string)
+
+        self.nodelist = SynthTemplateNodeList(template_string, dirs, name)
+        self.name = name
+        self.origin = origin
+
+    def __iter__(self):
+        for node in self.nodelist:
+            for subnode in node:
+                yield subnode
+
+    def _render(self, context):
+        return self.nodelist.render(context)
 
     def render(self, context):
-        with Timer('rendering') if debug else noop:
-            return self.template.render_to_string(context)
+        "Display stage -- can be called many times"
+        context.render_context.push()
+        try:
+            return self._render(context)
+        finally:
+            context.render_context.pop()
+
 
 class SynthLibrary(object):
     def __init__(self, library):
@@ -114,7 +127,7 @@ class SynthParser(base.Parser):
 
     def parse(self, tag_names=None):
         if tag_names: self.advance_until(tag_names)
-        return SynthNodeList(self.tokens[self.index - 1])
+        return SynthTokenNodeList(self.tokens[self.index - 1])
 
     def skip_past(self, tag_name):
         self.advance_until((tag_name,))
@@ -141,13 +154,37 @@ class SynthToken(base.Token):
         return self.pieces[1:]
 
 
-class SynthNodeList(base.NodeList):
+class SynthTokenNodeList(base.NodeList):
     def __init__(self, token):
-        super(SynthNodeList, self).__init__()
-        self.renderer = token.renderer
+        super(SynthTokenNodeList, self).__init__()
+        self.synth_renderer = token.renderer
 
     def render(self, context):
-        return self.renderer(context, get_options_from(context)) # XXX: mark_safe?
+        return self.synth_renderer(context, get_options_from(context)) # XXX: mark_safe?
+
+
+class SynthTemplateNodeList(base.NodeList):
+    def __init__(self, source, dirs, name):
+        super(SynthTemplateNodeList, self).__init__()
+        
+        try:
+            options = None if not dirs else {'directories': dirs}
+            with Timer('parsing') if debug else noop:
+                # TODO: Pass the optional template name for better errors.
+                self.synth_template = synth.Template(source, engine, options)
+        except RuntimeError as e:
+            message = str(e)
+            # TODO: Find a less hacky way to translate syntax errors.
+            if 'parsing error' in message or 'missing tag' in message:
+                location = ' (%s)' % name if name else ''
+                raise TemplateSyntaxError(message + location)
+            else:
+                raise
+
+    def render(self, context):
+        with Timer('rendering') if debug else noop:
+            return self.synth_template.render_to_string(context)
+
 
 def get_options_from(context):
     if context.use_tz or tz.get_current_timezone_name() != tz.get_default_timezone_name():
