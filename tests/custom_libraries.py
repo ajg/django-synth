@@ -70,5 +70,5 @@ class UTC(tzinfo):
 # TODO: Turn into an assertion with expect/actual.
 print SynthTemplate(source).render(Context({
     'motto': 'May the Force be with you.',
-    'dt': datetime.now(UTC()),
+    'dt': datetime(1988, 9, 5, 4, 3, 2, 0, UTC()),
 }))
