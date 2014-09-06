@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import datetime
+import django
 import django.template.base as base
 import django.utils.timezone as tz
 import django.utils.translation as tr
@@ -18,6 +19,9 @@ from django.template import generic_tag_compiler, StringOrigin, TemplateSyntaxEr
 
 if not settings.configured:
     settings.configure()
+
+if hasattr(django, 'setup'): # Django 1.7+
+    django.setup()
 
 default_formats = {
     'TEMPLATE_STRING_IF_INVALID': settings.TEMPLATE_STRING_IF_INVALID,
