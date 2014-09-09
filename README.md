@@ -84,4 +84,5 @@ Future Work
  - Docstrings for all public types and functions
  - Use paths for top-level templates (in the loaders) rather than
    string sources, to avoid copying and enable caching
+ - Make test suite unittest-compatible and add to setup
  - Example project
