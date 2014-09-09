@@ -1,5 +1,6 @@
 ##  (C) Copyright 2014 Alvaro J. Genial (http://alva.ro)
 
+from . import check
 from django.template import Context
 from django_synth.template import SynthTemplate
 
@@ -16,6 +17,4 @@ actual = SynthTemplate(source).render(Context({
     'motto': 'May the Force be with you.',
 }))
 
-print('expect:', expect)
-print('actual:', actual)
-assert expect == actual
+check(__name__, expect, actual)

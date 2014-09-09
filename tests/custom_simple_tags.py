@@ -1,5 +1,6 @@
 ##  (C) Copyright 2014 Alvaro J. Genial (http://alva.ro)
 
+from . import check
 from django import template
 
 register = template.Library()
@@ -20,6 +21,4 @@ source = """
 expect = '\n\n1\n'
 actual = SynthTemplate(source).render(template.Context({}))
 
-print('expect:', expect)
-print('actual:', actual)
-assert expect == actual
+check(__name__, expect, actual)

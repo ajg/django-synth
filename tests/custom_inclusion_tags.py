@@ -1,5 +1,6 @@
 ##  (C) Copyright 2014 Alvaro J. Genial (http://alva.ro)
 
+from . import check
 from django import template
 from django.template import loader
 
@@ -34,6 +35,4 @@ Bar: {% experiment_goal 'bar_experiment' %}
 expect = '\n\nFoo: [http://localhost/foo_experiment]\nBar: [http://localhost/bar_experiment]\n'
 actual = SynthTemplate(source).render(template.Context({}))
 
-print('expect:', expect)
-print('actual:', actual)
-assert expect == actual
+check(__name__, expect, actual)

@@ -119,6 +119,7 @@ def experiment(parser, token):
 
 template.libraries['custom_complex_tags'] = register
 
+from . import check
 from django_synth.template import SynthTemplate
 
 source = """
@@ -133,7 +134,5 @@ source = """
 expect = '\n\n\nA\nB\nC\nFoo: Experiment\n'
 actual = SynthTemplate(source).render(template.Context({}))
 
-print('expect:', expect)
-print('actual:', actual)
-assert expect == actual
+check(__name__, expect, actual)
 

@@ -1,5 +1,6 @@
 ##  (C) Copyright 2014 Alvaro J. Genial (http://alva.ro)
 
+from . import check
 from django.template import Context
 from django_synth.template import SynthTemplate
 
@@ -38,6 +39,4 @@ actual = SynthTemplate(source).render(Context({
     'dt': datetime(1988, 9, 5, 4, 3, 2, 0, UTC()),
 }))
 
-print('expect:', expect)
-print('actual:', actual)
-assert expect == actual
+check(__name__, expect, actual)
