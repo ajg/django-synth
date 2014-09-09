@@ -122,7 +122,7 @@ class SynthLibrary(object):
 
 class SynthParser(base.Parser):
     def __init__(self, segments):
-        super(SynthParser, self).__init__(map(SynthToken, segments))
+        super(SynthParser, self).__init__(list(map(SynthToken, segments)))
         self.index = 0
 
     def advance_until(self, tag_names):
