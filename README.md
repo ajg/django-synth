@@ -22,7 +22,7 @@ Usage
 
  1. Add it to your `requirements.txt` or equivalent:
 
-        django-synth>=0.7.4
+        django-synth>=0.7.5
 
  2. Enable it in your `settings.py` or equivalent:
 
