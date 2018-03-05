@@ -8,7 +8,7 @@ A bridge between [Django] and [Synth] that enables fast, efficient parsing and r
 
 [Django]:       https://djangoproject.com
 [Synth]:        https://github.com/ajg/synth
-[PyPI Version]: https://pypip.in/v/django-synth/badge.png
+[PyPI Version]: https://img.shields.io/pypi/v/django-synth.svg
 [Build Status]: https://travis-ci.org/ajg/django-synth.png?branch=master
 
 Installation
